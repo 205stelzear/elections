@@ -113,7 +113,7 @@ export function setupResultsPage(data) {
     
     const tableBody = fillTable(data);
     
-    $(tableBody).on('click', '.clickable-row', e => {
+    $(tableBody).on('click', '.clickable-row', async e => {
         const row = /** @type {HTMLTableRowElement} */ (e.currentTarget);
         
         $(row).removeClass('bg-warning bg-success');
@@ -145,19 +145,19 @@ export function setupResultsPage(data) {
             
             const jsonCandidate = JSON.stringify(candidateObject);
             
-            clearTimeout(timeoutRef);
-            
-            const response = Requester.sendRequest({
-                type: 'PUT',
-                url: `${Utils.sharedElectionHostRoot}/update-candidate/${data.sharedElectionCode}`,
-                data: jsonCandidate,
-                cache: false,
-            }, {minimumRequestDelay: 0});
-            
-            response.then(_response => {
-                updateTable;
+            try {
+                await Requester.sendRequest({
+                    type: 'PUT',
+                    url: `${Utils.sharedElectionHostRoot}/update-candidate/${data.sharedElectionCode}`,
+                    data: jsonCandidate,
+                    cache: false,
+                }, {minimumRequestDelay: 0});
+                
+                updateTable();
                 syncActive = true;
-            }).catch(handleSyncError);
+            } catch (error) {
+                handleSyncError(error);
+            }
         }
     });
     
@@ -191,19 +191,25 @@ export function setupResultsPage(data) {
     const numberOfVotedSpan = /** @type {HTMLSpanElement} */ (document.getElementById('number-of-voted'));
     
     function updateTable() {
-        timeoutRef = setTimeout(function() {
-            const request = requestElectionData(data.sharedElectionCode, 'retrieve-virtual');
+        if (timeoutRef) {
+            clearTimeout(timeoutRef);
+        }
+        
+        timeoutRef = setTimeout(async () => {
+            const response = await requestElectionData(data.sharedElectionCode, 'retrieve-virtual');
             
-            request.then(response => {
-                if (syncActive) {
+            if (syncActive) {
+                try {
                     fillTable(response.data);
                     
                     numberOfVotedSpan.innerText = response.voterCount;
                     
                     // eslint-disable-next-line no-unused-vars
                     updateTable();
+                } catch (error) {
+                    handleSyncError(error);
                 }
-            }).catch(handleSyncError);
+            }
         }, 1000);
     }
     

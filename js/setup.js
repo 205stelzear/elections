@@ -13,22 +13,26 @@ let setupInputs = {};
 let textFieldHadFocus = undefined;
     
 /**
- * @type {string}
+ * @type {string | undefined}
  */
 let groupImageData = undefined;
 
-export function setupSetup() {
+export async function setupSetup() {
     const submitVirtualSetupButton = /** @type {HTMLButtonElement} */ (document.getElementById('setup-create-virtual-election-modal-button'));
     const submitSharedSetupButton = /** @type {HTMLButtonElement} */ (document.getElementById('setup-create-election-modal-button'));
     const setupSharedRequesterContainer = document.getElementById('setup-shared-submit-requester-container');
     
-    Requester.sendRequest(`${Utils.sharedElectionHostRoot}`, {
-        requesterContainer: setupSharedRequesterContainer,
-        doHideContainerOnEnd: false,
-        minimumRequestDelay: 100,
-    }).then(() => {
+    try {
+        await Requester.sendRequest(`${Utils.sharedElectionHostRoot}`, {
+            requesterContainer: setupSharedRequesterContainer,
+            doHideContainerOnEnd: false,
+            minimumRequestDelay: 100,
+        });
+        
         Utils.isServerAccessible = true;
-    }).catch(_error => {});
+    } catch (_error) {
+        Utils.isServerAccessible = false;
+    }
     
     const imagePreview = /** @type {HTMLImageElement} */ (document.getElementById('setup-preview-image'));
     const imagePreviewCloser = /** @type {HTMLButtonElement} */ (document.getElementById('setup-preview-image-closer'));
@@ -249,7 +253,7 @@ export function setupSetup() {
         
         Utils.isDownloadDisabled = formData.get('autoDownloadDb') != 'on';
         
-        const compressedImageData = groupImageData ? LZString.compressToUTF16(groupImageData) : undefined;
+        const compressedImageData = groupImageData ? LZString.compressToEncodedURIComponent(groupImageData) : undefined;
         
         const data = ElectionData.fromFormData(formData, tempCandidates, compressedImageData);
         
@@ -283,36 +287,38 @@ export function setupSetup() {
         
         const electionJSONData = electionData.getAsJSON();
         
-        Requester.sendRequest({
-            type: 'POST',
-            url: `${Utils.sharedElectionHostRoot}/create-virtual`,
-            data: electionJSONData,
-            cache: false,
-        }, 'setup-create-virtual-election-modal-requester-container').then(response => {
+        try {
+            const response = await Requester.sendRequest({
+                type: 'POST',
+                url: `${Utils.sharedElectionHostRoot}/create-virtual`,
+                data: electionJSONData,
+                cache: false,
+            }, 'setup-create-virtual-election-modal-requester-container');
+
             if (!response.code) {
                 throw 'Missing election code!';
             }
-            
+                
             // electionData.mergeData(response.data);
-            
+                
             const data = ElectionData.fromJSON(response.data);
-            
+                
             data.setSharedElectionCode(response.code);
-            
+                
             return switchView('virtual-links-page', () => {
                 Utils.uninitializeImages('setup-page');
-                
+                    
                 $('#setup-create-virtual-election-modal').modal('hide');
-                
+                    
                 window.removeEventListener('beforeunload', preventDataLoss);
-                
+                    
                 setupVotingLinks(data);
             });
-        }).catch(_error => {
+        } catch (_error) {
             errorVirtualDiv.hidden = false;
-        }).finally(() => {
+        } finally {
             submitVirtualSetupButton.disabled = false;
-        });
+        }
     });
     
     const errorSharedDiv = document.getElementById('setup-create-election-modal-error');
@@ -328,12 +334,14 @@ export function setupSetup() {
         
         const electionJSONData = electionData.getAsJSON();
         
-        Requester.sendRequest({
-            type: 'POST',
-            url: `${Utils.sharedElectionHostRoot}/create`,
-            data: electionJSONData,
-            cache: false,
-        }, 'setup-create-election-modal-requester-container').then(response => {
+        try {
+            const response = await Requester.sendRequest({
+                type: 'POST',
+                url: `${Utils.sharedElectionHostRoot}/create`,
+                data: electionJSONData,
+                cache: false,
+            }, 'setup-create-election-modal-requester-container');
+
             if (!response.code) {
                 throw 'Missing election code!';
             }
@@ -351,11 +359,11 @@ export function setupSetup() {
                 
                 Utils.uninitializeImages('setup-page');
             }, 'setup-create-election-modal-requester-container');
-        }).catch(_error => {
+        } catch (_error) {
             errorSharedDiv.hidden = false;
-        }).finally(() => {
+        } finally {
             submitSharedSetupButton.disabled = false;
-        });
+        }
     });
     
     const inputs = document.querySelectorAll('div#setup-page input.spinner[type=\'number\']');

@@ -27,7 +27,7 @@ function enableHomePageInputs() {
 /**
  *
  */
-function setupIndex() {
+async function setupIndex() {
     // Javascript enabled, enable inputs...
     
     if (!urlParams.has('code')) {
@@ -57,15 +57,17 @@ function setupIndex() {
     
     const minimumToastDelay = urlParams.has('code') ? new MinimalDelayer(1000) : undefined;
     
-    Requester.sendRequest(`${Utils.sharedElectionHostRoot}`, {
-        requesterContainer: 'home-join-requester-container',
-        doHideContainerOnEnd: false,
-        minimumRequestDelay: 150,
-    }).then(() => {
-        Utils.isServerAccessible = true;
+    try {
+        await Requester.sendRequest(`${Utils.sharedElectionHostRoot}`, {
+            requesterContainer: 'home-join-requester-container',
+            doHideContainerOnEnd: false,
+            minimumRequestDelay: 150,
+        });
         
+        Utils.isServerAccessible = true;
+            
         setupJoinSharedElection();
-    }).catch(_error => {
+    } catch (error) {
         if (urlParams.has('code')) {
             enableHomePageInputs();
             
@@ -83,7 +85,7 @@ function setupIndex() {
                 $(toastErrorElement).off('hidden.bs.toast');
             });
         }
-    }).finally(() => {
+    } finally {
         if (urlParams.has('code')) {
             minimumToastDelay.execute(() => {
                 const toastContainer = document.getElementById('home-toasts-container');
@@ -100,7 +102,7 @@ function setupIndex() {
                 });
             });
         }
-    });
+    }
     
     new FileLoader('database-loader-zone', {
         doLoadFiles: loadFile,
@@ -192,33 +194,33 @@ function setupJoinSharedElection() {
         partitionnedInputs.forEach(input => input.disabled = true);
         errorSpan.hidden = true;
         
-        const request = Requester.sendRequest({
-            url: `${Utils.sharedElectionHostRoot}/join/${code}`,
-            contentType: 'application/javascript; charset=UTF-16',
-        }, 'home-join-modal-requester-container');
-        
-        request.then(response => {
+        try {
+            const response = await Requester.sendRequest({
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/join`, { code }),
+                contentType: 'application/javascript',
+            }, 'home-join-modal-requester-container');
+            
             const data = ElectionData.fromJSON(response.data);
-            
+                
             data.setSharedElectionCode(code);
-            
+                
             return setupVotes(data, () => {
                 $('#home-join-election-modal').modal('hide');
-                
+                    
                 errorSpan.hidden = true;
             }, 'home-join-modal-requester-container');
-        }).catch(response => {
-            if (response.status == 400) {
-                errorSpan.textContent = 'Ce code n\'existe pas. Veuillez réessayer!';
+        } catch (error) {
+            if (error.status == 404) {
+                errorSpan.textContent = `Ce code n'existe pas. Veuillez réessayer!`;
             } else {
                 errorSpan.textContent = 'Une erreur imprévue est survenue, veuillez réessayer!';
             }
             
             errorSpan.hidden = false;
-        }).finally(() => {
+        } finally {
             modalButton.disabled = false;
             partitionnedInputs.forEach(input => input.disabled = false);
-        });
+        }
     });
     
     // If URL contains the query to set the code, directly open the modal to join a shared election

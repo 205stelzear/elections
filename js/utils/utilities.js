@@ -173,7 +173,7 @@ class DataUtils {
      */
     initializeImages(viewId, imageData) {
         if (imageData) {
-            const uncompressedImage = LZString.decompressFromUTF16(imageData);
+            const uncompressedImage = LZString.decompressFromEncodedURIComponent(imageData);
             
             this.viewImageIterator(viewId, imageElem => imageElem.src = uncompressedImage);
         } else {

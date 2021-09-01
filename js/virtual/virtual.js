@@ -39,7 +39,7 @@ export function requestElectionData(virtualElectionCode, path, requestOptions) {
     
     return Requester.sendRequest({
         url: url,
-        contentType: 'application/javascript; charset=UTF-16',
+        contentType: 'application/javascript',
     }, requestOptions);
 }
 
@@ -47,20 +47,20 @@ export function requestElectionData(virtualElectionCode, path, requestOptions) {
  *
  * @param {string} virtualElectionCode
  */
-function setupVoter(virtualElectionCode) {
+async function setupVoter(virtualElectionCode) {
     const electionCookie = Cookies.get(`election_${virtualElectionCode}`);
     
     if (!isAdmin && electionCookie) {
         loadingMainText.innerText = 'Vous avez déjà voté pour cette élection! Merci! :)';
     } else {
-        const request = requestElectionData(virtualElectionCode, 'join-virtual', {
-            requesterContainer: 'home-loading-requester-container',
-            minimumRequestDelay: 500,
-        });
-        
-        request.then(response => {
+        try {
+            const response = await requestElectionData(virtualElectionCode, 'join-virtual', {
+                requesterContainer: 'home-loading-requester-container',
+                minimumRequestDelay: 500,
+            });
+            
             handleJoinSuccessResponse(response, virtualElectionCode);
-        }).catch(error => {
+        } catch (error) {
             if (error.status == 400) {
                 const nonExistingCodeErrorText = document.getElementById('non-existing-code-error');
                 
@@ -70,7 +70,7 @@ function setupVoter(virtualElectionCode) {
                 
                 serverErrorText.hidden = false;
             }
-        });
+        }
     }
 }
 
@@ -138,7 +138,7 @@ function setupVirtualVotingSession(data) {
     
     const votingOverlay = document.getElementById('voting-voted-overlay');
     
-    submitVotesButton.addEventListener('click', () => {
+    submitVotesButton.addEventListener('click', async () => {
         submitVotesButton.disabled = true;
         
         const votingUnderSubmitButtonDiv = document.getElementById('voting-under-submit-button-div');
@@ -149,26 +149,27 @@ function setupVirtualVotingSession(data) {
         
         const requestContainer = 'voting-sending-votes-requester-container';
         
-        const response = Requester.sendRequest({
-            type: 'PUT',
-            url: `${Utils.sharedElectionHostRoot}/vote-virtual/${data.sharedElectionCode}`,
-            data: candidatesIndexesJSON,
-            cache: false,
-        }, {
-            requesterContainer: requestContainer,
-            minimumRequestDelay: 500,
-            doLingerSpinner: true
-        });
-        
-        response.then(() => {
-            votingOverlay.classList.add('active');
+        try {
+            await Requester.sendRequest({
+                type: 'PUT',
+                url: `${Utils.sharedElectionHostRoot}/vote-virtual/${data.sharedElectionCode}`,
+                data: candidatesIndexesJSON,
+                cache: false,
+            }, {
+                requesterContainer: requestContainer,
+                minimumRequestDelay: 500,
+                doLingerSpinner: true
+            });
             
+            votingOverlay.classList.add('active');
+                
             Cookies.set(`election_${data.sharedElectionCode}`, 'true', {expires: 14});
-        }).catch(_error => {
-            votingUnderSubmitButtonDiv.hidden = false;
+        } catch (_error) {
             Requester.hideLoader(requestContainer);
+            
+            votingUnderSubmitButtonDiv.hidden = false;
             submitVotesButton.disabled = false;
-        });
+        }
     });
 }
 

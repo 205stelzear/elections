@@ -25,6 +25,15 @@ function createRequestOptions(requestOptions) {
 
 class RequestSender {
     /**
+     *
+     * @param {string} path
+     * @param {Record<string, unknown>} [query]
+     */
+    url(path, query) {
+        return `${path}?${$.param(query)}`;
+    }
+    
+    /**
      * Send requests and handle UI spinners
      * @param {JQuery.AjaxSettings | string} ajaxSettings
      * @param {Partial<RequestOptions> | string} [requestOptions]
