@@ -355,7 +355,7 @@ export function setupResultsPage(data, _didSkipRemainings) {
             window.removeEventListener('beforeunload', autoDownloadData);
             
             Utils.isDownloadDisabled = true;
-            document.location.reload(true);
+            location.reload();
         }
     });
 }

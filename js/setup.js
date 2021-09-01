@@ -523,7 +523,7 @@ export function setupSetup() {
     
     const homepageButton = document.getElementById('setup-homepage-button');
     
-    homepageButton.addEventListener('click', () => document.location.reload(true));
+    homepageButton.addEventListener('click', () => location.reload());
 }
 
 /**
