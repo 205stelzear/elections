@@ -9,8 +9,8 @@
 	"extends": [
 		"eslint:recommended"
 	],
-	"plugins": [
-	],
+	"plugins": [],
+	"ignorePatterns": ["node_modules", "js/libraries", "temp"],
 	"env": {
 		"es6": true,
 		"browser": true,
