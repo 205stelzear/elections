@@ -74,20 +74,22 @@ class RequestSender {
             // Return plain request since no UI container was specified
             return request;
         } else {
-            // Return request with added default behaviors for handling spinners / response icons
-            return request.then(response => {
+            try {
+                // Return request with added default behaviors for handling spinners / response icons
+                const response = await request;
+                
                 if (!doHideContainerOnEnd) {
                     requestContainerElements.requesterSuccessIcons.forEach(elem => elem.hidden = false);
                 }
                 
-                return Promise.resolve(response);
-            }).catch(error => {
+                return response;
+            } catch (error) {
                 if (!doHideContainerOnEnd) {
                     requestContainerElements.requesterErrorIcons.forEach(elem => elem.hidden = false);
                 }
                 
-                return Promise.reject(error);
-            }).finally(() => {
+                throw error;
+            } finally {
                 if (!options.doLingerSpinner) {
                     requestContainerElements.requesterSpinners.forEach(elem => elem.hidden = true);
                     
@@ -95,7 +97,7 @@ class RequestSender {
                         finalRequesterContainer.hidden = true;
                     }
                 }
-            });
+            }
         }
     }
     
