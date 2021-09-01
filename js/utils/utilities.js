@@ -14,9 +14,9 @@ class DataUtils {
         
         this.isTouchDevice = 'ontouchstart' in document.documentElement;
         
-        this.isDev = false && window.location.hostname.includes('localhost');
+        this.isDev = window.location.hostname.includes('localhost');
         
-        this.sharedElectionHostRoot = this.isDev ? 'http://localhost:5678' : 'https://ved.ddnsfree.com/scouts-elections/api';
+        this.sharedElectionHostRoot = this.isDev ? 'http://localhost:3000' : 'https://ved.ddnsfree.com/scouts-elections/api';
         
         this.isServerAccessible = false;
         
