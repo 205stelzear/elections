@@ -1,6 +1,5 @@
 {
 	"recommendations": [
-		"ritwickdey.liveserver",
 		"dbaeumer.vscode-eslint",
 		"html-validate.vscode-html-validate"
 	]

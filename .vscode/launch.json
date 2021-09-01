@@ -5,16 +5,13 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-            "name": "Launch and attach to Microsoft Edge",
-            "type": "edge",
-            "request": "attach",
-			// "url": "http://localhost:5500/",
-			"port": 9222,
-			"timeout": 20000,
+			"name": "Launch in Microsoft Edge",
+			"type": "pwa-msedge",
+			"request": "launch",
 			"webRoot": "${workspaceFolder}",
-			"urlFilter": "localhost:5500*",
-			"preLaunchTask": "Live Server: Go Online",
-			"postDebugTask": "Live Server: Go Offline"
-        }
+			"url": "http://localhost:8080",
+			"preLaunchTask": "start dev",
+			"postDebugTask": "Terminate All Tasks"
+		}
 	]
 }
