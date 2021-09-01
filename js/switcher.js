@@ -1,7 +1,7 @@
 /**
  *
  * @param {string} viewId
- * @param {() => *} onSwitchedHandler
+ * @param {() => *} [onSwitchedHandler]
  */
 export function switchView(viewId, onSwitchedHandler) {
     const views = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#views > *'));
