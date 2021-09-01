@@ -37,7 +37,7 @@ export async function setupVotes(data, beforeSwitchCallback, requestContainer, d
             try {
                 didSkipVotingPage = await votingGoToNextVoter(data, true, requestContainer, true, undefined, beforeSwitchCallback);
             } catch (error) {
-                return Promise.reject(error.error);
+                throw error.error;
             }
         }
         
@@ -49,7 +49,7 @@ export async function setupVotes(data, beforeSwitchCallback, requestContainer, d
             switchView('voting-page', () => setupVotingSession(data));
         }
         
-        return Promise.resolve(didSkipVotingPage);
+        return didSkipVotingPage;
     }
 }
 
@@ -218,11 +218,15 @@ export function setupVotingSession(data) {
      */
     async function updateVotes(requestContainer) {
         if (data.sharedElectionCode) {
-            const candidatesIndexesJSON = JSON.stringify(data.votesCurrentCandidateIndexes);
+            const candidatesData = {
+                candidates: data.votesCurrentCandidateIndexes
+            };
+            
+            const candidatesIndexesJSON = JSON.stringify(candidatesData);
             
             const response = await Requester.sendRequestFor(3, {
-                type: 'PUT',
-                url: `${Utils.sharedElectionHostRoot}/vote/${data.sharedElectionCode}`,
+                type: 'PATCH',
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/vote`, { code: data.sharedElectionCode }),
                 data: candidatesIndexesJSON,
                 cache: false,
             }, {
@@ -467,8 +471,8 @@ export function setupVotingSession(data) {
         
         try {
             const response = await Requester.sendRequest({
-                type: 'PUT',
-                url: `${Utils.sharedElectionHostRoot}/skip/${data.sharedElectionCode}`,
+                type: 'PATCH',
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/skip`, { code: data.sharedElectionCode }),
             }, 'voting-skipper-requester-container');
             
             data.mergeData(response.data);
@@ -536,11 +540,11 @@ export async function votingGoToNextVoter(data, doForceNewVoter, requestsContain
             valuesToRetrieve.length = 0;
         }
         
-        const queryFromValuesToRetrieve = valuesToRetrieve.length == 0 ? '' : `?${valuesToRetrieve.join('&')}`;
+        const queries = valuesToRetrieve.reduce((accumulator, v) => (accumulator[v] = true, accumulator), /** @type {Record<string, true>} */ ({}));
         
         try {
             const response = await Requester.sendRequestFor(3, {
-                url: `${Utils.sharedElectionHostRoot}/retrieve/${data.sharedElectionCode}${queryFromValuesToRetrieve}`,
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, { code: data.sharedElectionCode, ...queries }),
                 cache: false,
             }, {
                 requesterContainer: requestsContainer,
@@ -552,19 +556,22 @@ export async function votingGoToNextVoter(data, doForceNewVoter, requestsContain
         } catch (error) {
             Requester.hideLoader(requestsContainer);
             
-            return Promise.reject({error: error, at: 'retrieve'});
+            throw { error, at: 'retrieve' };
         }
     }
     
     if ((doForceNewVoter || isVoteFinished) && (data.hasSkipped || data.numberOfSeatsTaken == data.numberOfVoters)) {
         Requester.hideLoader(requestsContainer);
+        
         endVotingSession(data, false, beforeSwitchCallback);
+        
         return true;
     } else if (doForceNewVoter || isVoteFinished) {
         if (data.sharedElectionCode) {
             try {
                 const response = await Requester.sendRequestFor(3, {
-                    url: `${Utils.sharedElectionHostRoot}/seat/${data.sharedElectionCode}`,
+                    type: 'PATCH',
+                    url: Requester.url(`${Utils.sharedElectionHostRoot}/seat`, { code: data.sharedElectionCode }),
                     cache: false,
                 }, {
                     requesterContainer: requestsContainer,
@@ -575,15 +582,14 @@ export async function votingGoToNextVoter(data, doForceNewVoter, requestsContain
             } catch (error) {
                 Requester.hideLoader(requestsContainer);
                 
-                return Promise.reject({error: error, at: 'seat'});
+                throw { error, at: 'seat' };
             }
         } else {
-            Requester.hideLoader(requestsContainer);
             data.numberOfSeatsTaken++;
         }
-    } else {
-        Requester.hideLoader(requestsContainer);
     }
+    
+    Requester.hideLoader(requestsContainer);
     
     return false;
 }

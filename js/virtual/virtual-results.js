@@ -143,12 +143,12 @@ export function setupResultsPage(data) {
         if (syncActive) {
             syncActive = false;
             
-            const jsonCandidate = JSON.stringify(candidateObject);
+            const jsonCandidate = JSON.stringify({ data: candidateObject });
             
             try {
                 await Requester.sendRequest({
-                    type: 'PUT',
-                    url: `${Utils.sharedElectionHostRoot}/update-candidate/${data.sharedElectionCode}`,
+                    type: 'PATCH',
+                    url: Requester.url(`${Utils.sharedElectionHostRoot}/update-candidate`, { code: data.sharedElectionCode }),
                     data: jsonCandidate,
                     cache: false,
                 }, {minimumRequestDelay: 0});
@@ -172,7 +172,7 @@ export function setupResultsPage(data) {
     downloadDbButton.addEventListener('click', e => {
         e.preventDefault();
         
-        Utils.downloadData(data.getAsJSON(true));
+        Utils.downloadData(data.getAsJSON({ excludeCode: true }));
     });
     
     const syncContainer = document.getElementById('sync-container');
@@ -196,10 +196,10 @@ export function setupResultsPage(data) {
         }
         
         timeoutRef = setTimeout(async () => {
-            const response = await requestElectionData(data.sharedElectionCode, 'retrieve-virtual');
-            
             if (syncActive) {
                 try {
+                    const response = await requestElectionData(data.sharedElectionCode, 'retrieve');
+                    
                     fillTable(response.data);
                     
                     numberOfVotedSpan.innerText = response.voterCount;

@@ -120,7 +120,13 @@ export function setupPostVoting(data, didSkipRemainings) {
             sharedPostVotesVerifyErrorSpan.hidden = true;
             
             const response = await Requester.sendRequest({
-                url: `${Utils.sharedElectionHostRoot}/retrieve/${data.sharedElectionCode}?numberOfVoted&numberOfSeatsTaken&hasSkipped&candidates`,
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, {
+                    code: data.sharedElectionCode,
+                    numberOfVoted: true,
+                    numberOfSeatsTaken: true,
+                    hasSkipped: true,
+                    candidates: true,
+                }),
                 cache: false,
             }, {
                 requesterContainer: 'post-shared-voting-verify-requester-container',
@@ -147,7 +153,7 @@ export function setupPostVoting(data, didSkipRemainings) {
             sharedPostVotesGoErrorSpan.hidden = true;
             
             const response = await Requester.sendRequest({
-                url: `${Utils.sharedElectionHostRoot}/retrieve/${data.sharedElectionCode}`,
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, { code: data.sharedElectionCode }),
                 cache: false,
             }, 'post-shared-votes-go-requester-container');
             
@@ -176,7 +182,7 @@ export function setupPostVoting(data, didSkipRemainings) {
             
             const response = await Requester.sendRequest({
                 type: 'DELETE',
-                url: `${Utils.sharedElectionHostRoot}/delete/${data.sharedElectionCode}`,
+                url: Requester.url(`${Utils.sharedElectionHostRoot}`, { code: data.sharedElectionCode }),
                 cache: false,
             }, 'post-shared-votes-go-and-delete-requester-container');
             
@@ -295,7 +301,7 @@ export function setupResultsPage(data, _didSkipRemainings) {
     
     $(resultsTableBody).append(tableBodyHtml);
     
-    $(resultsTableBody).on('click', '.clickable-row', e => {
+    $(resultsTableBody).on('click', '.clickable-row', async e => {
         const row = /** @type {HTMLTableRowElement} */ (e.currentTarget);
         
         $(row).removeClass('bg-warning bg-success');
@@ -320,6 +326,21 @@ export function setupResultsPage(data, _didSkipRemainings) {
         candidateObject.selectedState = candidateState;
         
         Utils.dbIsDirty = true;
+        
+        if (data.sharedElectionCode) {
+            const jsonCandidate = JSON.stringify({ data: candidateObject });
+            
+            try {
+                await Requester.sendRequest({
+                    type: 'PATCH',
+                    url: Requester.url(`${Utils.sharedElectionHostRoot}/update-candidate`, { code: data.sharedElectionCode }),
+                    data: jsonCandidate,
+                    cache: false,
+                }, {minimumRequestDelay: 0});
+            } catch (error) {
+                console.error(`Couldn't update table data in server. Ah well. Error object :`, error);
+            }
+        }
     });
     
     const legendToggler = /** @type {HTMLLinkElement} */ (document.querySelector('a[data-toggle=\'collapse\'][data-target=\'#results-click-explications\']'));
@@ -339,7 +360,7 @@ export function setupResultsPage(data, _didSkipRemainings) {
     downloadDbButton.addEventListener('click', e => {
         e.preventDefault();
         
-        Utils.downloadData(data.getAsJSON(true));
+        Utils.downloadData(data.getAsJSON({ excludeCode: true }));
     });
     
     const homepageButton = document.getElementById('results-homepage-button');

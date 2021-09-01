@@ -285,12 +285,12 @@ export async function setupSetup() {
         
         const electionData = createData();
         
-        const electionJSONData = electionData.getAsJSON();
+        const electionJSONData = electionData.getAsJSON({ candidatesOnlyName: true });
         
         try {
             const response = await Requester.sendRequest({
                 type: 'POST',
-                url: `${Utils.sharedElectionHostRoot}/create-virtual`,
+                url: `${Utils.sharedElectionHostRoot}/virtual/create`,
                 data: electionJSONData,
                 cache: false,
             }, 'setup-create-virtual-election-modal-requester-container');
@@ -332,7 +332,7 @@ export async function setupSetup() {
         
         const electionData = createData();
         
-        const electionJSONData = electionData.getAsJSON();
+        const electionJSONData = electionData.getAsJSON({ candidatesOnlyName: true });
         
         try {
             const response = await Requester.sendRequest({

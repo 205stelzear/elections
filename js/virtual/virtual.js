@@ -27,18 +27,14 @@ function setupVirtualElection() {
 /**
  *
  * @param {string} virtualElectionCode
- * @param {'join-virtual' | 'retrieve-virtual'} path
+ * @param {'join' | 'retrieve'} path
  * @param {Partial<import('../my-libs/requester.js').RequestOptions> | string} [requestOptions]
  */
 export function requestElectionData(virtualElectionCode, path, requestOptions) {
-    let url = `${Utils.sharedElectionHostRoot}/${path}/${virtualElectionCode}`;
-    
-    if (isAdmin) {
-        url = `${url}?admin`;
-    }
+    const additionalQueries = { ...(isAdmin && {admin: true}) };
     
     return Requester.sendRequest({
-        url: url,
+        url: Requester.url(`${Utils.sharedElectionHostRoot}/virtual/${path}`, { code: virtualElectionCode, ...additionalQueries }),
         contentType: 'application/javascript',
     }, requestOptions);
 }
@@ -54,7 +50,7 @@ async function setupVoter(virtualElectionCode) {
         loadingMainText.innerText = 'Vous avez déjà voté pour cette élection! Merci! :)';
     } else {
         try {
-            const response = await requestElectionData(virtualElectionCode, 'join-virtual', {
+            const response = await requestElectionData(virtualElectionCode, 'join', {
                 requesterContainer: 'home-loading-requester-container',
                 minimumRequestDelay: 500,
             });
@@ -145,14 +141,18 @@ function setupVirtualVotingSession(data) {
         
         votingUnderSubmitButtonDiv.hidden = true;
         
-        const candidatesIndexesJSON = JSON.stringify(data.votesCurrentCandidateIndexes);
+        const candidatesData = {
+            candidates: data.votesCurrentCandidateIndexes
+        };
+        
+        const candidatesIndexesJSON = JSON.stringify(candidatesData);
         
         const requestContainer = 'voting-sending-votes-requester-container';
         
         try {
             await Requester.sendRequest({
-                type: 'PUT',
-                url: `${Utils.sharedElectionHostRoot}/vote-virtual/${data.sharedElectionCode}`,
+                type: 'PATCH',
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/virtual/vote`, { code: data.sharedElectionCode }),
                 data: candidatesIndexesJSON,
                 cache: false,
             }, {

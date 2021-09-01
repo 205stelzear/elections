@@ -7,6 +7,12 @@ import Utils from './utils/utilities.js';
  * @property {'unselected' | 'pre-selected' | 'selected'} selectedState
  */
 
+/**
+ * @typedef GetAsJsonOptions
+ * @property {boolean} [excludeCode]
+ * @property {boolean} [candidatesOnlyName]
+ */
+
 export class ElectionData {
     /**
      *
@@ -50,18 +56,24 @@ export class ElectionData {
     
     /**
      *
-     * @param {boolean} [excludeSharedElectionCode]
+     * @param {GetAsJsonOptions} [options]
      */
-    getAsJSON(excludeSharedElectionCode) {
+    getAsJSON(options) {
         const sharedCode = this.sharedElectionCode;
         
-        if (excludeSharedElectionCode) {
+        if (options && options.excludeCode) {
             delete this.sharedElectionCode;
         }
         
-        const jsoned = JSON.stringify(this);
+        const data = /** @type {Record<string, unknown>} */(this);
         
-        if (excludeSharedElectionCode) {
+        if (options && options.candidatesOnlyName) {
+            data.candidates = this.candidates.map(candidate => candidate.name);
+        }
+        
+        const jsoned = JSON.stringify(data);
+        
+        if (options && options.excludeCode) {
             this.sharedElectionCode = sharedCode;
         }
         
@@ -230,7 +242,7 @@ export class ElectionData {
             && typeof data.numberOfVoted == 'number'
             && (data.numberOfSeatsTaken == undefined || typeof data.numberOfSeatsTaken == 'number')
             && typeof data.hasSkipped == 'boolean'
-            && typeof data.candidates == 'object') {
+            && (Array.isArray(data.candidates) || Array.isArray(data.candidatesData))) {
             // START OF BACKWARD COMPATIBILITY with v0.1 databases
             if (data.numberOfVotePerVoter !== undefined) {
                 data.numberOfVotePerVoterMin = data.numberOfVotePerVoter;
@@ -254,7 +266,7 @@ export class ElectionData {
                 data.numberOfSeatsTaken,
                 data.hasSkipped,
                 data.isDownloadDisabled,
-                data.candidates,
+                data.candidates || data.candidatesData,
                 data.groupImage
             );
             
