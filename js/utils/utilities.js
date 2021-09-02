@@ -16,7 +16,7 @@ class DataUtils {
         
         this.isDev = window.location.hostname.includes('localhost');
         
-        this.sharedElectionHostRoot = this.isDev ? 'http://localhost:3000' : 'https://ved.ddnsfree.com/scouts-elections/api';
+        this.sharedElectionHostRoot = this.isDev ? 'http://localhost:3000' : 'https://api.elections.205stelzear.ddnsfree.com';
         
         this.isServerAccessible = false;
         
