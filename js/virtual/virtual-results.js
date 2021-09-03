@@ -200,9 +200,11 @@ export function setupResultsPage(data) {
                 try {
                     const response = await requestElectionData(data.sharedElectionCode, 'retrieve');
                     
-                    fillTable(response.data);
+                    const responseData = ElectionData.fromJSON(response.data);
                     
-                    numberOfVotedSpan.innerText = response.voterCount;
+                    fillTable(responseData);
+                    
+                    numberOfVotedSpan.innerText = responseData.numberOfVoted.toString();
                     
                     // eslint-disable-next-line no-unused-vars
                     updateTable();
