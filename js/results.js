@@ -133,7 +133,9 @@ export function setupPostVoting(data, didSkipRemainings) {
                 // doHideContainerOnEnd: false,
             });
             
-            data.mergeData(response.data);
+            const fetchedElection = ElectionData.fromJSON(response.data);
+            
+            data.mergeData(fetchedElection);
         } catch (error) {
             const messageToShow = error.status == 400 ? `Le code ${data.sharedElectionCode} n'est pas sur le serveur. Un autre appareil a probablement déjà supprimer les données du serveur! Vous pouvez cependant utiliser l'option de voir les résultats localement.` : errorInternetErrorMessage;
             
@@ -157,7 +159,9 @@ export function setupPostVoting(data, didSkipRemainings) {
                 cache: false,
             }, 'post-shared-votes-go-requester-container');
             
-            data.mergeData(response.data);
+            const fetchedElection = ElectionData.fromJSON(response.data);
+            
+            data.mergeData(fetchedElection);
             
             setupResults(data);
             
@@ -186,7 +190,9 @@ export function setupPostVoting(data, didSkipRemainings) {
                 cache: false,
             }, 'post-shared-votes-go-and-delete-requester-container');
             
-            data.mergeData(response.data);
+            const fetchedElection = ElectionData.fromJSON(response.data);
+            
+            data.mergeData(fetchedElection);
             
             setupResults(data);
             

@@ -242,7 +242,7 @@ export class ElectionData {
             && typeof data.numberOfVoted == 'number'
             && (data.numberOfSeatsTaken == undefined || typeof data.numberOfSeatsTaken == 'number')
             && typeof data.hasSkipped == 'boolean'
-            && (Array.isArray(data.candidates) || Array.isArray(data.candidatesData))) {
+            && (Array.isArray(data.candidatesData) || Array.isArray(data.candidates))) {
             // START OF BACKWARD COMPATIBILITY with v0.1 databases
             if (data.numberOfVotePerVoter !== undefined) {
                 data.numberOfVotePerVoterMin = data.numberOfVotePerVoter;
@@ -266,7 +266,7 @@ export class ElectionData {
                 data.numberOfSeatsTaken,
                 data.hasSkipped,
                 data.isDownloadDisabled,
-                data.candidates || data.candidatesData,
+                data.candidatesData || data.candidates,
                 data.groupImage
             );
             

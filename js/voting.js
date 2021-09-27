@@ -233,7 +233,9 @@ export function setupVotingSession(data) {
                 requesterContainer: requestContainer,
             });
             
-            data.mergeData(response.data);
+            const fetchedElection = ElectionData.fromJSON(response.data);
+            
+            data.mergeData(fetchedElection);
         } else {
             data.votesCurrentCandidateIndexes.forEach(voteIndex => {
                 data.candidates[voteIndex].voteCount++;
@@ -475,7 +477,9 @@ export function setupVotingSession(data) {
                 url: Requester.url(`${Utils.sharedElectionHostRoot}/skip`, { code: data.sharedElectionCode }),
             }, 'voting-skipper-requester-container');
             
-            data.mergeData(response.data);
+            const fetchedElection = ElectionData.fromJSON(response.data);
+            
+            data.mergeData(fetchedElection);
             
             endVotingSession(data, true);
             
@@ -578,7 +582,9 @@ export async function votingGoToNextVoter(data, doForceNewVoter, requestsContain
                     minimumRequestDelay: 150,
                 });
                 
-                data.mergeData(response.data);
+                const fetchedElection = ElectionData.fromJSON(response.data);
+                
+                data.mergeData(fetchedElection);
             } catch (error) {
                 Requester.hideLoader(requestsContainer);
                 
