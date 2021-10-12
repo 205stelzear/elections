@@ -204,7 +204,7 @@ export function setupResultsPage(data) {
                     
                     fillTable(responseData);
                     
-                    numberOfVotedSpan.innerText = responseData.numberOfVoted.toString();
+                    numberOfVotedSpan.innerText = `${responseData.numberOfVoted} / ${responseData.numberOfVoters}`;
                     
                     // eslint-disable-next-line no-unused-vars
                     updateTable();
