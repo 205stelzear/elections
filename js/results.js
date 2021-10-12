@@ -120,13 +120,7 @@ export function setupPostVoting(data, didSkipRemainings) {
             sharedPostVotesVerifyErrorSpan.hidden = true;
             
             const response = await Requester.sendRequest({
-                url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, {
-                    code: data.sharedElectionCode,
-                    numberOfVoted: true,
-                    numberOfSeatsTaken: true,
-                    hasSkipped: true,
-                    candidates: true,
-                }),
+                url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, { code: data.sharedElectionCode }),
                 cache: false,
             }, {
                 requesterContainer: 'post-shared-voting-verify-requester-container',
