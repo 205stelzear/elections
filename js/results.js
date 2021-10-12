@@ -121,7 +121,6 @@ export function setupPostVoting(data, didSkipRemainings) {
             
             const response = await Requester.sendRequest({
                 url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, { code: data.sharedElectionCode }),
-                cache: false,
             }, {
                 requesterContainer: 'post-shared-voting-verify-requester-container',
                 // doHideContainerOnEnd: false,
@@ -150,7 +149,6 @@ export function setupPostVoting(data, didSkipRemainings) {
             
             const response = await Requester.sendRequest({
                 url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, { code: data.sharedElectionCode }),
-                cache: false,
             }, 'post-shared-votes-go-requester-container');
             
             const fetchedElection = ElectionData.fromJSON(response.data);
