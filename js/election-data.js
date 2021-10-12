@@ -270,8 +270,8 @@ export class ElectionData {
                 data.groupImage
             );
             
-            if (data.sharedElectionCode) {
-                electionData.setSharedElectionCode(data.sharedElectionCode);
+            if (data.sharedElectionCode || data.code) {
+                electionData.setSharedElectionCode(data.sharedElectionCode || data.code);
             }
             
             return electionData;
