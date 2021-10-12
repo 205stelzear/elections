@@ -126,7 +126,7 @@ export function setupPostVoting(data, didSkipRemainings) {
                 // doHideContainerOnEnd: false,
             });
             
-            const fetchedElection = ElectionData.fromJSON(response.data);
+            const fetchedElection = ElectionData.fromJSON({ code: data.sharedElectionCode, ...response.data });
             
             data.mergeData(fetchedElection);
         } catch (error) {
@@ -151,7 +151,7 @@ export function setupPostVoting(data, didSkipRemainings) {
                 url: Requester.url(`${Utils.sharedElectionHostRoot}/retrieve`, { code: data.sharedElectionCode }),
             }, 'post-shared-votes-go-requester-container');
             
-            const fetchedElection = ElectionData.fromJSON(response.data);
+            const fetchedElection = ElectionData.fromJSON({ code: data.sharedElectionCode, ...response.data });
             
             data.mergeData(fetchedElection);
             
